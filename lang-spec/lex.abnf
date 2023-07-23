@@ -1,0 +1,54 @@
+
+file := [<UTF-BOM>] <token-stream>
+
+UTF-BOM := %xFEFF
+
+newline := [%x0d] %x0a
+
+whitespace-char-no-newine := %x09 / %x0b / %x0c  / %x20 / %x8F / %x200E / %x200F / %x2028 / %x2029
+whitespace-char := <whitespace-char-no-newline> / <newline> 
+
+
+line-comment-char := <whitespace-char-no-newline> / %x21-B7FF / %xE000-10FFFF
+
+block-comment-char := <whitespace-char> / %x21-29 / %x2B-5B / %x5D-B7FF / %xE000-10FFFF
+
+line-comment := "\\" [*<line-comment-char>] <newline>
+
+block-comment-end := "*/"
+
+block-comment-content := <block-comment-char> / "/"<block-comment-content> / "*"<block-comment-content> / <block-comment>
+
+block-comment := "/*" [*<block-comment-content>] ["*" / "/"] "*/"
+
+whitespace := <block-comment> / <line-comment> / <whitespace-char> / <whitespace><whitespace>
+
+ident-start := <XID_Start> / "_" / "$" / "."
+ident-part := <XID_Part> / "_" / "$" / "."
+
+ident := <ident-start> [*<ident-part>]
+
+dec-digit := "0" / "1" / "2" / "3" / "4" / "5" / "6" / "7" / "8" / "9"
+
+hex-digit := <dec-digit> / "A" / "B" / "C" / "D" / "E" / "F" / "a" / "b" / "c" / "d" / "e" / "f"
+
+dec-literal := *<dec-digit>
+
+hex-literal := "0x" *<hex-digit>
+
+int-literal := <dec-literal> / <hex-literal>
+
+string-literal-char := <whitespace-char> / %x21 / %x23-5B / %x5D-B7FF / %xE000-10FFFF
+
+escape-sequence := "n" / "r" / "t" / "\" / "x" <hex-digit> <hex-digit> / "u{" 1*6<hex-digit> "}" 
+
+quote := %x22
+
+string-literal := <quote> [*(<string-literal-char> / "\" <escape-sequence>)] <quote>
+
+
+token := <ident> / <int-literal> / <string-literal> / <group>
+
+token-stream := [*([<whitespace>] <token>)] [<whitespace>]
+
+group := "(" <token-stream> ")" / "{" <token-stream> "}" / "[" <token-stream> "]"
